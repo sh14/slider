@@ -52,7 +52,7 @@ function get_template( $file, $atts ) {
 
 function enqueue_styles() {
 	wp_enqueue_style( __NAMESPACE__, get_plugin_path() . '/assets/styles/style.css' /*,array(), date( 'His' )*/ );
-	wp_enqueue_script( __NAMESPACE__, get_plugin_path() . '/assets/js/functions.js', array( 'jquery' ), '1', true );
+	wp_enqueue_script( 'slider-script', get_plugin_path() . '/assets/js/functions.js', array( 'jquery' ), '1', true );
 }
 
 add_action( 'wp_enqueue_scripts', __NAMESPACE__ . '\enqueue_styles' );
@@ -75,18 +75,40 @@ function get_slider() {
 	}
 
 	$slider = array();
-	foreach ( $slides->posts as $slide ) {
+	foreach ( $slides->posts as $i=>$slide ) {
 		$slide        = (array) $slide;
 		$post_id      = $slide['ID'];
 		$slide['url'] = get_the_post_thumbnail_url( $post_id, 'full' );
 
+		if ( 0 == $i ) {
+			$slide['active'] = ' active';
+		} else {
+			$slide['active'] = '';
+		}
+		$slide['index'] = ' data-slide="'.$i.'"';
 		$slide    = get_template( 'slide', $slide );
 		$slider[] = $slide;
 	}
 
-	$slider = '<ul class="slider js-slider">' . implode( '', $slider ) . '</ul>';
+	$slides_count = sizeof( $slider );
 
-	return $slider . 'asdvbf';
+
+	$slider         = array( 'items' => implode( '', $slider ) );
+	$slider['dots'] = '';
+
+	for ( $i = 0; $i < $slides_count; $i ++ ) {
+		if ( 0 == $i ) {
+			$active = ' active';
+		} else {
+			$active = '';
+		}
+		$slider['dots'] .= '<li class="slider__dot' . $active . ' js-slider-dot" data-index="'.$i.'"></li>';
+	}
+
+
+	$slider = get_template( 'slider', $slider );
+
+	return $slider;
 }
 
 add_shortcode( 'slider', __NAMESPACE__ . '\get_slider' );
